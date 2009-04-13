@@ -78,7 +78,10 @@ class TestEvaluator < Test::Unit::TestCase
     assert_equal nil, Evaluator('niL')
   end
 
-  def test_functions
+  def test_numeric_functions
+    assert_equal 13, Evaluator('gcd(26, 39)')
+    assert_equal 78, Evaluator('lcm(26, 39)')
+    assert_equal Math.cos(42), Evaluator('cos 42')
     assert_equal Math.sin(42), Evaluator('sin 42')
     assert_equal Math.cos(42), Evaluator('cos 42')
     assert_equal Math.tan(42), Evaluator('tan 42')
@@ -96,6 +99,8 @@ class TestEvaluator < Test::Unit::TestCase
     assert_equal Math.log10(42) + 3, Evaluator('log10 42 + 3')
     assert_equal Math.log(42)/Math.log(2) + 3, Evaluator('log2 42 + 3')
     assert_equal 3 * Math.exp(42), Evaluator('3 * exp 42')
+    assert_equal Math.erf(2), Evaluator('erf 2')
+    assert_equal Math.erfc(2), Evaluator('erfc 2')
     assert_equal 42, Evaluator('floor 42.3')
     assert_equal 42, Evaluator('ceil 41.6')
     assert_equal 3.5, Evaluator('float("3.5")')
@@ -113,8 +118,16 @@ class TestEvaluator < Test::Unit::TestCase
     assert_equal 3, Evaluator('plus 3')
     assert_equal(-3, Evaluator('minus 3'))
     assert_equal false, Evaluator('!3')
+    assert_equal ~3, Evaluator('~3')
+  end
+
+  def test_string_functions
     assert_equal 'bcd', Evaluator('substr("abcde", 1, 3)')
     assert_equal 4, Evaluator('len("abcd")')
+    assert_equal 'abc', Evaluator('strip "  abc "')
+    assert_equal 'cba', Evaluator('reverse "abc"')
+    assert_equal 2, Evaluator('index("abcdefg", "cde")')
+    assert_equal 7, Evaluator('rindex("abcdefgcdef", "cde")')
   end
 
   def test_variables
@@ -137,5 +150,18 @@ class TestEvaluator < Test::Unit::TestCase
     assert_equal 0xABCDEF123, Evaluator('0xABCDEF123')
     assert_equal 01234, Evaluator('01234')
     assert_equal 234, Evaluator('234 ')
+    assert_equal 0.123, Evaluator('.123')
+    assert_equal 0.123, Evaluator('0.123')
+    assert_equal 123.0, Evaluator('123.')
+    assert_equal 123e-42, Evaluator('123e-42')
+    assert_equal 0.123e-42, Evaluator('.123e-42')
+    assert_equal 2.123e-42, Evaluator('2.123e-42')
+  end
+
+  def test_strings
+    assert_equal "abc'a", Evaluator('"abc\'a"')
+    assert_equal 'abc"a', Evaluator('"abc\"a"')
+    assert_equal 'abc"a', Evaluator("'abc\"a'")
+    assert_equal "abc'a", Evaluator("'abc\\'a'")
   end
 end
