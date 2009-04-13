@@ -9,13 +9,13 @@ Gem::Specification.new do |s|
   s.date = %q{2009-04-13}
   s.email = ["mail@daniel-mendler.de"]
   s.extra_rdoc_files = ["Manifest.txt"]
-  s.files = ["lib/evaluator.rb", "test/test_evaluator.rb", "README", "Rakefile", "Manifest.txt"]
+  s.files = ["lib/evaluator.rb", "test/test_evaluator.rb", "README.markdown", "Rakefile", "Manifest.txt"]
   s.has_rdoc = true
-  s.rdoc_options = ["--main", "README.txt"]
+  s.rdoc_options = ["--main", "README.markdown"]
   s.require_paths = ["lib"]
   s.rubyforge_project = %q{evaluator}
   s.rubygems_version = %q{1.3.1}
-  s.summary = nil
+  s.summary = "Mathematical expression evaluator" 
   s.test_files = ["test/test_evaluator.rb"]
 
   if s.respond_to? :specification_version then
