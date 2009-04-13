@@ -4,7 +4,7 @@ module Evaluator
   def self.infix(priority, unary = nil, &block) [false, priority, lambda(&block), unary] end
   def self.prefix(&block) [true, 1e5, lambda(&block)] end
 
-  VERSION = "0.1"
+  VERSION = "0.1.1"
   OPERATOR = {
     '||'     => infix(0) {|a,b| a || b },
     'or'     => infix(0) {|a,b| a || b },
