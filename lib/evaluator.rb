@@ -141,8 +141,7 @@ module Evaluator
       unary = true
     end
     exec(result, stack.pop) while !stack.empty?
-    raise(SyntaxError, "Unexpected operands") if result.size != 1
-    result[0]
+    result.last
   end
 
   def self.exec(result, op)
