@@ -120,4 +120,11 @@ class TestEvaluator < Test::Unit::TestCase
     assert_equal 14, Evaluator('a+b*C', 'A' => 2, 'b' => 3, :c => 4)
     assert_equal 14, Evaluator('alpha+beta*GAMMA', 'ALPHA' => 2, 'bEtA' => 3, 'gamma' => 4)
   end
+
+  def test_errors
+    assert_raise(SyntaxError) { Evaluator('(((((((((((((3+3))') }
+    assert_raise(SyntaxError) { Evaluator('1+2)') }
+    assert_raise(SyntaxError) { Evaluator('1+2+3+') }
+    assert_raise(SyntaxError) { Evaluator('1 + floor') }
+  end
 end
