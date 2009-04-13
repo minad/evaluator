@@ -1,23 +1,67 @@
 require 'complex'
 
 module Evaluator
+  def self.infix(priority, unary = nil, &block) [false, priority, lambda(&block), unary] end
+  def self.prefix(&block) [true, 1e5, lambda(&block)] end
 
   VERSION = "0.1"
-  INTEGER = /\d+/
-  REAL = /(?:\d*\.\d+(?:[eE][-+]?\d+)?|\d+[eE][-+]?\d+)/
-  STRING = /'(?:[^']|\\')+'|"(?:[^"]|\\")+"/
-  SYMBOL = /[\w_]+/
-  FUNCTIONS = {
-    'sin' => 1, 'cos' => 1, 'tan' => 1, 'sinh' => 1, 'cosh' => 1, 'tanh' => 1, 'asin' => 1, 'acos' => 1, 'atan' => 1,
-    'asinh' => 1, 'atanh' => 1, 'sqrt' => 1, 'log' => 1, 'ln' => 1, 'log10' => 1, 'log2' => 1, 'exp' => 1,
-    'floor' => 1, 'ceil' => 1, 'string' => 1, 'int' => 1, 'float' => 1, 'rand' => 0, 'conj' => 1, 'im' => 1, 're' => 1, 'round' => 1,
-    'abs' => 1, 'minus' => 1, 'plus' => 1, 'not' => 1 }
-  OPERATOR = [ %w(|| or), %w(&& and), %w(== != <= >= < >), %w(+ -),
-             %w(<< >>), %w(& | ^), %w(* / % div mod), %w(**), %w(!) ]
-  UNARY = {
-    '+' => 'plus',
-    '-' => 'minus',
-    '!' => 'not'
+  OPERATOR = {
+    '||'     => infix(0) {|a,b| a || b },
+    'or'     => infix(0) {|a,b| a || b },
+    '&&'     => infix(1) {|a,b| a && b },
+    'and'    => infix(1) {|a,b| a && b },
+    '=='     => infix(2) {|a,b| a == b },
+    '!='     => infix(2) {|a,b| a != b },
+    '<='     => infix(2) {|a,b| a <= b },
+    '>='     => infix(2) {|a,b| a >= b },
+    '<'      => infix(2) {|a,b| a < b },
+    '>'      => infix(2) {|a,b| a > b },
+    '+'      => infix(3, 'plus') {|a,b| a + b },
+    '-'      => infix(3, 'minus') {|a,b| a - b },
+    '>>'     => infix(4) {|a,b| a >> b },
+    '<<'     => infix(4) {|a,b| a << b },
+    '&'      => infix(5) {|a,b| a & b },
+    '|'      => infix(5) {|a,b| a | b },
+    '^'      => infix(5) {|a,b| a ^ b },
+    '*'      => infix(6) {|a,b| a * b },
+    '/'      => infix(6) {|a,b| a / b },
+    '%'      => infix(6) {|a,b| a % b },
+    'div'    => infix(6) {|a,b| a.div b },
+    'mod'    => infix(6) {|a,b| a % b },
+    '**'     => infix(7) {|a,b| a ** b },
+    'sin'    => prefix {|x| Math.sin(x) },
+    'cos'    => prefix {|x| Math.cos(x) },
+    'tan'    => prefix {|x| Math.tan(x) },
+    'sinh'   => prefix {|x| Math.sinh(x) },
+    'cosh'   => prefix {|x| Math.cosh(x) },
+    'tanh'   => prefix {|x| Math.tanh(x) },
+    'asin'   => prefix {|x| Math.asin(x) },
+    'acos'   => prefix {|x| Math.acos(x) },
+    'atan'   => prefix {|x| Math.atan(x) },
+    'asinh'  => prefix {|x| Math.asinh(x) },
+    'atanh'  => prefix {|x| Math.atanh(x) },
+    'sqrt'   => prefix {|x| Math.sqrt(x) },
+    'log'    => prefix {|x| Math.log(x) },
+    'ln'     => prefix {|x| Math.log(x) },
+    'log10'  => prefix {|x| Math.log10(x) },
+    'log2'   => prefix {|x| Math.log(x)/Math.log(2) },
+    'exp'    => prefix {|x| Math.exp(x) },
+    'floor'  => prefix {|x| x.floor },
+    'ceil'   => prefix {|x| x.ceil },
+    'string' => prefix {|x| x.to_s },
+    'int'    => prefix {|x| x.to_i },
+    'float'  => prefix {|x| x.to_f },
+    'rand'   => prefix {|| rand },
+    'conj'   => prefix {|x| x.conj },
+    'im'     => prefix {|x| x.imag },
+    're'     => prefix {|x| x.real },
+    'round'  => prefix {|x| x.round },
+    'abs'    => prefix {|x| x.abs },
+    'minus'  => prefix {|x| -x },
+    'plus'   => prefix {|x| x },
+    '!'      => prefix {|x| !x },
+    'substr' => prefix {|x,a,b| x.slice(a,b) },
+    'len'    => prefix {|x| x.length }
   }
   CONSTANTS = {
     'true'  => true,
@@ -27,131 +71,65 @@ module Evaluator
     'pi'    => Math::PI,
     'i'     => Complex::I
   }
-
-  OP = {}
-  (OPERATOR + [FUNCTIONS.keys]).each_with_index do |ops,i|
-    ops.each { |op| OP[op] = i }
-  end
-
-  TOKENIZER = Regexp.new("#{REAL.source}|#{INTEGER.source}|#{STRING.source}|#{SYMBOL.source}|\\(|\\)|,|" +
-                         (OPERATOR + FUNCTIONS.keys).flatten.sort { |a,b| b.length <=> a.length}.map { |op| Regexp.quote(op) }.join('|'))
+  TOKENS = [
+            [ /^'(?:[^']|\\')+'|"(?:[^"]|\\")+"$/,               lambda {|tok, vars| tok[1..-2]   } ],
+            [ /^(?:\d*\.\d+(?:[eE][-+]?\d+)?|\d+[eE][-+]?\d+)$/, lambda {|tok, vars| tok.to_f     } ],
+            [ /^0[xX][\dA-Fa-f]+$/,                              lambda {|tok, vars| tok.to_i(16) } ],
+            [ /^0[0-7]+$/,                                       lambda {|tok, vars| tok.to_i(8)  } ],
+            [ /^\d+$/,                                           lambda {|tok, vars| tok.to_i(10) } ],
+            [ /^[a-zA-Z_][\w_]*$/,                               lambda {|tok, vars|
+                tok.downcase!
+                raise(NameError, "Symbol #{tok} is undefined") if !vars.include?(tok)
+                vars[tok]
+              }
+            ]
+           ]
+  TOKENIZER = Regexp.new((TOKENS.map {|x| x[0].source[1..-2] } +
+                          OPERATOR.keys.flatten.sort { |a,b| b.length <=> a.length}.map { |op| Regexp.quote(op) }).
+                         join('|') + '|\\(|\\)|,')
 
   def self.eval(expr, vars = {})
-    table = CONSTANTS.dup
-    vars.each_pair {|k,v| table[k.to_s.downcase] = v }
-    tokens = expr.scan(TOKENIZER)
-    stack, post = [], []
-    prev = nil
-    tokens.each do |tok|
+    vars = Hash[*vars.map {|k,v| [k.to_s.downcase, v] }.flatten].merge(CONSTANTS)
+    stack, result, unary = [], [], true
+    expr.scan(TOKENIZER).each do |tok|
       if tok == '('
         stack << '('
       elsif tok == ')'
-        op(post, stack.pop) while !stack.empty? && stack.last != '('
+        exec(result, stack.pop) while !stack.empty? && stack.last != '('
         raise(SyntaxError, "Unexpected token )") if stack.empty?
         stack.pop
       elsif tok == ','
-        op(post, stack.pop) while !stack.empty? && stack.last != '('
-      elsif FUNCTIONS.include?(tok.downcase)
-        stack << tok.downcase
-      elsif OP.include?(tok)
-        if (prev == nil || OP.include?(prev)) && UNARY.include?(tok)
-          stack << UNARY[tok]
+        exec(result, stack.pop) while !stack.empty? && stack.last != '('
+      elsif OPERATOR.include?(tok.downcase)
+        tok.downcase!
+        if OPERATOR[tok][0]
+          stack << tok
+        elsif unary && OPERATOR[tok][3]
+          stack << OPERATOR[tok][3]
         else
-          op(post, stack.pop) while !stack.empty? && stack.last != '(' && OP[stack.last] >= OP[tok]
+          exec(result, stack.pop) while !stack.empty? && stack.last != '(' && OPERATOR[stack.last][1] >= OPERATOR[tok][1]
           stack << tok
         end
-      elsif tok =~ STRING
-        post << tok[1..-2]
-      elsif tok =~ REAL
-        post << tok.to_f
-      elsif tok =~ INTEGER
-        post << tok.to_i
       else
-        tok.downcase!
-        raise(NameError, "Symbol #{tok} is undefined") if !table.include?(tok)
-        post << table[tok]
+        result << TOKENS.find {|x| tok =~ x[0] }[1][tok, vars]
+        unary = false
+        next
       end
-      prev = tok
+      unary = true
     end
-    op(post, stack.pop) while !stack.empty?
-    post[0]
+    exec(result, stack.pop) while !stack.empty?
+    raise(SyntaxError, "Unexpected operands") if result.size != 1
+    result[0]
   end
 
-  def self.op(stack, op)
-    stack << \
-    if FUNCTIONS.include?(op)
-      args = FUNCTIONS[op]
-      raise(SyntaxError, "Not enough operands on the stack") if stack.size < args
-      a = stack.slice!(-args, args)
-      case op
-      when 'sin'    then Math.sin(a[0])
-      when 'cos'    then Math.cos(a[0])
-      when 'tan'    then Math.tan(a[0])
-      when 'sinh'   then Math.sinh(a[0])
-      when 'cosh'   then Math.cosh(a[0])
-      when 'tanh'   then Math.tanh(a[0])
-      when 'asin'   then Math.asin(a[0])
-      when 'acos'   then Math.acos(a[0])
-      when 'atan'   then Math.atan(a[0])
-      when 'asinh'  then Math.asinh(a[0])
-      when 'atanh'  then Math.atanh(a[0])
-      when 'sqrt'   then Math.sqrt(a[0])
-      when 'log'    then Math.log(a[0])
-      when 'ln'     then Math.log(a[0])
-      when 'log10'  then Math.log10(a[0])
-      when 'log2'   then Math.log(a[0])/Math.log(2)
-      when 'exp'    then Math.exp(a[0])
-      when 'floor'  then a[0].floor
-      when 'ceil'   then a[0].ceil
-      when 'string' then a[0].to_s
-      when 'float'  then a[0].to_f
-      when 'int'    then a[0].to_i
-      when 'rand'   then rand
-      when 'conj'   then a[0].conj
-      when 'im'     then a[0].imag
-      when 're'     then a[0].real
-      when 'round'  then a[0].round
-      when 'abs'    then a[0].abs
-      when 'plus'   then a[0]
-      when 'minus'  then -a[0]
-      when 'not'    then !a[0]
-      end
-    else
-      raise(SyntaxError, "Not enough operands on the stack") if stack.size < 2
-      b = stack.pop
-      a = stack.pop
-      case op
-      when '||'  then a || b
-      when 'or'  then a || b
-      when '&&'  then a && b
-      when 'and' then a && b
-      when '=='  then a == b
-      when '!='  then a != b
-      when '<='  then a <= b
-      when '>='  then a >= b
-      when '<'   then a < b
-      when '>'   then a > b
-      when '+'   then a + b
-      when '-'   then a - b
-      when '*'   then a * b
-      when '/'   then a / b
-      when 'div' then a.div(b)
-      when '%'   then a % b
-      when 'mod' then a % b
-      when '**'  then a ** b
-      when '<<'  then a << b
-      when '>>'  then a >> b
-      when '&'   then a & b
-      when '|'   then a | b
-      when '^'   then a ^ b
-      else
-        raise(SyntaxError, "Unexpected token #{op}")
-      end
-    end
+  def self.exec(result, op)
+    raise(SyntaxError, "Unexpected token #{op}") if !OPERATOR.include?(op)
+    op = OPERATOR[op][2]
+    raise(SyntaxError, "Not enough operands for #{op}") if result.size < op.arity
+    result << op[*result.slice!(-op.arity, op.arity)]
   end
 
-  private_class_method :op
-
+  private_class_method :infix, :prefix, :exec
 end
 
 def Evaluator(expr, vars = {})

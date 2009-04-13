@@ -111,8 +111,10 @@ class TestEvaluator < Test::Unit::TestCase
     assert_equal 4, Evaluator('round(3.5)')
     assert_equal 6, Evaluator('abs -6')
     assert_equal 3, Evaluator('plus 3')
-    assert_equal -3, Evaluator('minus 3')
-    assert_equal false, Evaluator('not 3')
+    assert_equal(-3, Evaluator('minus 3'))
+    assert_equal false, Evaluator('!3')
+    assert_equal 'bcd', Evaluator('substr("abcde", 1, 3)')
+    assert_equal 4, Evaluator('len("abcd")')
   end
 
   def test_variables
@@ -126,5 +128,14 @@ class TestEvaluator < Test::Unit::TestCase
     assert_raise(SyntaxError) { Evaluator('1+2)') }
     assert_raise(SyntaxError) { Evaluator('1+2+3+') }
     assert_raise(SyntaxError) { Evaluator('1 + floor') }
+    assert_raise(NameError) { Evaluator('42*a+3') }
+    assert_raise(NameError) { Evaluator('abc10') }
+    assert_raise(NameError) { Evaluator('abc10d') }
+  end
+
+  def test_numbers
+    assert_equal 0xABCDEF123, Evaluator('0xABCDEF123')
+    assert_equal 01234, Evaluator('01234')
+    assert_equal 234, Evaluator('234 ')
   end
 end
