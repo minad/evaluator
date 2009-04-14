@@ -107,12 +107,15 @@ module Evaluator
     expr.to_s.scan(TOKENIZER).each do |tok|
       if tok == '('
         stack << '('
+        unary = true
       elsif tok == ')'
         exec(result, stack.pop) while !stack.empty? && stack.last != '('
         raise(SyntaxError, "Unexpected token )") if stack.empty?
         stack.pop
+        unary = false
       elsif tok == ','
         exec(result, stack.pop) while !stack.empty? && stack.last != '('
+        unary = true
       elsif operator = OPERATOR[tok.downcase]
         tok = String === operator ? operator : tok.downcase
         if operator[0]
@@ -123,6 +126,7 @@ module Evaluator
           exec(result, stack.pop) while !stack.empty? && stack.last != '(' && OPERATOR[stack.last][1] >= operator[1]
           stack << tok
         end
+        unary = true
       else
         result << case tok
                   when STRING then tok[1..-2].gsub(/\\"/, '"').gsub(/\\'/, "'")
@@ -136,9 +140,7 @@ module Evaluator
                     vars[tok]
                   end
         unary = false
-        next
       end
-      unary = true
     end
     exec(result, stack.pop) while !stack.empty?
     result.last

@@ -30,6 +30,8 @@ class TestEvaluator < Test::Unit::TestCase
 
     assert_equal 3, Evaluator('1+2')
     assert_equal 'xyz', Evaluator('"x"+"yz"')
+    assert_equal 'a1b', Evaluator("'a'+string 1+'b'")
+    assert_equal 'a1b', Evaluator("'a'+string(1)+'b'")
 
     assert_equal 3, Evaluator('5-2')
     assert_equal(-1, Evaluator('3-4'))
