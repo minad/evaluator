@@ -4,7 +4,7 @@ module Evaluator
   def self.infix(priority, unary = nil, &block) [false, priority, lambda(&block), unary] end
   def self.prefix(&block) [true, 1e5, lambda(&block)] end
 
-  VERSION = "0.1.2"
+  VERSION = "0.1.3"
   OPERATOR = {
     '||'       => infix(0) {|a,b| a || b },
     '&&'       => infix(1) {|a,b| a && b },
@@ -104,7 +104,7 @@ module Evaluator
   def self.eval(expr, vars = {})
     vars = Hash[*vars.map {|k,v| [k.to_s.downcase, v] }.flatten].merge(CONSTANTS)
     stack, result, unary = [], [], true
-    expr.scan(TOKENIZER).each do |tok|
+    expr.to_s.scan(TOKENIZER).each do |tok|
       if tok == '('
         stack << '('
       elsif tok == ')'
