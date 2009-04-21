@@ -4,7 +4,7 @@ module Evaluator
   def self.infix(priority, unary = nil, &block) [false, priority, lambda(&block), unary] end
   def self.prefix(&block) [true, 1e5, lambda(&block)] end
 
-  VERSION = "0.1.3"
+  VERSION = "0.1.4"
   OPERATOR = {
     '||'       => infix(0) {|a,b| a || b },
     '&&'       => infix(1) {|a,b| a && b },
@@ -69,6 +69,7 @@ module Evaluator
     'reverse'  => prefix   {|x| x.reverse },
     'index'    => prefix   {|x,y| x.index(y) },
     'rindex'   => prefix   {|x,y| x.rindex(y) },
+    '='        => '==',
     'or'       => '||',
     'and'      => '&&',
     'mod'      => '%',
@@ -148,9 +149,9 @@ module Evaluator
 
   def self.exec(result, op)
     raise(SyntaxError, "Unexpected token #{op}") if !OPERATOR.include?(op)
-    op = OPERATOR[op][2]
-    raise(SyntaxError, "Not enough operands for #{op}") if result.size < op.arity
-    result << op[*result.slice!(-op.arity, op.arity)]
+    fn = OPERATOR[op][2]
+    raise(SyntaxError, "Not enough operands for #{op}") if result.size < fn.arity
+    result << fn[*result.slice!(-fn.arity, fn.arity)]
   end
 
   private_class_method :infix, :prefix, :exec
