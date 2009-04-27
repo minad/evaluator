@@ -97,6 +97,7 @@ module Evaluator
     'm_p'   => 1.67262158e-27,  # Proton mass
     'm_n'   => 1.67492716e-27,  # Neutron mass
     'n_l'   => 6.02214179e+23,  # Loschmidt constant
+    'k_b'   => 1.3806504e-23,   # Boltzmann constant
   }
   STRING = /^(?:'(?:\\'|[^'])*'|"(?:\\"|[^"])*")$/
   REAL   = /^(?:(?:\d*\.\d+|\d+\.\d*)(?:[eE][-+]?\d+)?|\d+[eE][-+]?\d+)$/
