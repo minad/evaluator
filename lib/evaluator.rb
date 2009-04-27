@@ -92,6 +92,9 @@ module Evaluator
     'pi'    => Math::PI,
     'i'     => Complex::I,
     'q_e'   => 1.602176487e-19, # Elemetary charge
+    'm_e'   => 9.10938215e-31,  # Electron mass
+    'm_p'   => 1.67262158e-27,  # Proton mass
+    'm_n'   => 1.67492716e-27,  # Neutron mass
     'n_l'   => 6.02214179e+23,  # Loschmidt constant
   }
   STRING = /^(?:'(?:\\'|[^'])*'|"(?:\\"|[^"])*")$/
