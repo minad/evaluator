@@ -90,7 +90,9 @@ module Evaluator
     'nil'   => nil,
     'e'     => Math::E,
     'pi'    => Math::PI,
-    'i'     => Complex::I
+    'i'     => Complex::I,
+    'q_e'   => 1.602176487e-19, # Elemetary charge
+    'n_l'   => 6.02214179e+23,  # Loschmidt constant
   }
   STRING = /^(?:'(?:\\'|[^'])*'|"(?:\\"|[^"])*")$/
   REAL   = /^(?:(?:\d*\.\d+|\d+\.\d*)(?:[eE][-+]?\d+)?|\d+[eE][-+]?\d+)$/

@@ -11,7 +11,7 @@ loop do
       break
     end
     Readline::HISTORY.push(line)
-    break if line == 'exit'
+    break if line == 'exit' || line == 'quit'
     if line =~ /^(\w+)\s*:=\s*(.*)$/
       puts vars[$1] = Evaluator($2, vars)
     else
