@@ -91,6 +91,7 @@ module Evaluator
     'e'     => Math::E,
     'pi'    => Math::PI,
     'i'     => Complex::I,
+    'c'     => 2.99792458e8,    # Speed of light
     'q_e'   => 1.602176487e-19, # Elemetary charge
     'm_e'   => 9.10938215e-31,  # Electron mass
     'm_p'   => 1.67262158e-27,  # Proton mass
