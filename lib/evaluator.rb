@@ -110,7 +110,7 @@ module Evaluator
   TOKENIZER = Regexp.new((VALUE_TOKENS + OPERATOR_TOKENS + ['\\(', '\\)', ',']).join('|'))
 
   def self.eval(expr, vars = {})
-    vars = Hash[*vars.map {|k,v| [k.to_s.downcase, v] }.flatten].merge(CONSTANTS)
+    vars = Hash[*vars.merge(CONSTANTS).map {|k,v| [k.to_s.downcase, v] }.flatten]
     stack, result, unary = [], [], true
     expr.to_s.scan(TOKENIZER).each do |tok|
       if tok == '('
@@ -125,12 +125,17 @@ module Evaluator
         exec(result, stack.pop) while !stack.empty? && stack.last != '('
         unary = true
       elsif operator = OPERATOR[tok.downcase]
+        # Check for alias
         tok = String === operator ? operator : tok.downcase
+        operator = OPERATOR[tok]
         if operator[0]
+          # Prefix operator
           stack << tok
         elsif unary && operator[3]
+          # Alternative prefix operator
           stack << operator[3]
         else
+          # Infix operator
           exec(result, stack.pop) while !stack.empty? && stack.last != '(' && OPERATOR[stack.last][1] >= operator[1]
           stack << tok
         end
