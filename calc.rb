@@ -2,23 +2,32 @@
 require 'lib/evaluator'
 require 'readline'
 
-vars = {}
-loop do
-  begin
-    line = Readline::readline('> ')
-    if !line
-      puts
-      break
-    end
-    Readline::HISTORY.push(line)
-    break if line == 'exit' || line == 'quit'
-    if line =~ /^(\w+)\s*:=\s*(.*)$/
-      puts vars[$1] = Evaluator($2, vars)
-    else
-      puts Evaluator(line, vars)
-    end
-  rescue Exception => ex
-    puts ex.message
+def process(line, vars, quiet = false)
+  exit if line == 'exit' || line == 'quit'
+  if line =~ /^(\w+)\s*:=?\s*(.*)$/
+    vars[$1] = Evaluator($2, vars)
+  else
+    Evaluator(line, vars)
   end
+rescue Exception => ex
+  quiet ? nil : ex.message
 end
 
+if defined? Unit
+  Unit::System::DEFAULT.load(:scientific)
+  Unit::System::DEFAULT.load(:imperial)
+  Unit::System::DEFAULT.load(:misc)
+end
+
+vars = {}
+File.read('calc.startup').split("\n").each { |line| process(line, vars, true) }
+
+loop do
+  line = Readline::readline('> ')
+  if !line
+    puts
+    break
+  end
+  Readline::HISTORY.push(line)
+  puts process(line, vars)
+end

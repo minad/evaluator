@@ -1,31 +1,39 @@
 require 'complex'
+begin
+  require 'units'
+rescue LoadError
+end
 
 module Evaluator
   def self.infix(priority, unary = nil, &block) [false, priority, lambda(&block), unary] end
   def self.prefix(&block) [true, 1e5, lambda(&block)] end
 
-  VERSION = "0.1.4"
+  VERSION = '0.1.5'
   OPERATOR = {
-    '||'       => infix(0) {|a,b| a || b },
-    '&&'       => infix(1) {|a,b| a && b },
-    '=='       => infix(2) {|a,b| a == b },
-    '!='       => infix(2) {|a,b| a != b },
-    '<='       => infix(2) {|a,b| a <= b },
-    '>='       => infix(2) {|a,b| a >= b },
-    '<'        => infix(2) {|a,b| a < b },
-    '>'        => infix(2) {|a,b| a > b },
-    '+'        => infix(3, 'plus') {|a,b| a + b },
-    '-'        => infix(3, 'minus') {|a,b| a - b },
-    '>>'       => infix(4) {|a,b| a >> b },
-    '<<'       => infix(4) {|a,b| a << b },
-    '&'        => infix(5) {|a,b| a & b },
-    '|'        => infix(5) {|a,b| a | b },
-    '^'        => infix(5) {|a,b| a ^ b },
-    '*'        => infix(6) {|a,b| a * b },
-    '/'        => infix(6) {|a,b| a / b },
-    '%'        => infix(6) {|a,b| a % b },
-    'div'      => infix(6) {|a,b| a.div b },
-    '**'       => infix(7) {|a,b| a ** b },
+    'in'       => infix(0) do |a,b|
+      raise(RuntimeError, 'Unit support not available') if !a.respond_to? :in
+      a.in(b)
+    end,
+    '||'       => infix(1) {|a,b| a || b },
+    '&&'       => infix(2) {|a,b| a && b },
+    '=='       => infix(3) {|a,b| a == b },
+    '!='       => infix(3) {|a,b| a != b },
+    '<='       => infix(3) {|a,b| a <= b },
+    '>='       => infix(3) {|a,b| a >= b },
+    '<'        => infix(3) {|a,b| a < b },
+    '>'        => infix(3) {|a,b| a > b },
+    '+'        => infix(4, 'plus') {|a,b| a + b },
+    '-'        => infix(4, 'minus') {|a,b| a - b },
+    '>>'       => infix(5) {|a,b| a >> b },
+    '<<'       => infix(5) {|a,b| a << b },
+    '&'        => infix(6) {|a,b| a & b },
+    '|'        => infix(6) {|a,b| a | b },
+    '^'        => infix(6) {|a,b| a ^ b },
+    '*'        => infix(7) {|a,b| a * b },
+    '/'        => infix(7) {|a,b| a / b },
+    '%'        => infix(7) {|a,b| a % b },
+    'div'      => infix(7) {|a,b| a.div b },
+    '**'       => infix(8) {|a,b| a ** b },
     'gcd'      => prefix   {|x,y| x.gcd(y) },
     'lcm'      => prefix   {|x,y| x.lcm(y) },
     'sin'      => prefix   {|x| Math.sin(x) },
@@ -91,13 +99,6 @@ module Evaluator
     'e'     => Math::E,
     'pi'    => Math::PI,
     'i'     => Complex::I,
-    'c'     => 2.99792458e8,    # Speed of light
-    'q_e'   => 1.602176487e-19, # Elemetary charge
-    'm_e'   => 9.10938215e-31,  # Electron mass
-    'm_p'   => 1.67262158e-27,  # Proton mass
-    'm_n'   => 1.67492716e-27,  # Neutron mass
-    'n_l'   => 6.02214179e+23,  # Loschmidt constant
-    'k_b'   => 1.3806504e-23,   # Boltzmann constant
   }
   STRING = /^(?:'(?:\\'|[^'])*'|"(?:\\"|[^"])*")$/
   REAL   = /^(?:(?:\d*\.\d+|\d+\.\d*)(?:[eE][-+]?\d+)?|\d+[eE][-+]?\d+)$/
@@ -105,7 +106,8 @@ module Evaluator
   OCT    = /^0[0-7]+$/
   DEC    = /^\d+$/
   SYMBOL = /^[a-zA-Z_][\w_]*$/
-  VALUE_TOKENS = [STRING, REAL, HEX, OCT, DEC, SYMBOL].map {|x| x.source[1..-2] }
+  UNIT   = /^\[[^\]]+\]$/
+  VALUE_TOKENS = [UNIT, STRING, REAL, HEX, OCT, DEC, SYMBOL].map {|x| x.source[1..-2] }
   OPERATOR_TOKENS = OPERATOR.keys.flatten.sort { |a,b| b.length <=> a.length}.map { |x| Regexp.quote(x) }
   TOKENIZER = Regexp.new((VALUE_TOKENS + OPERATOR_TOKENS + ['\\(', '\\)', ',']).join('|'))
 
@@ -118,7 +120,7 @@ module Evaluator
         unary = true
       elsif tok == ')'
         exec(result, stack.pop) while !stack.empty? && stack.last != '('
-        raise(SyntaxError, "Unexpected token )") if stack.empty?
+        raise(SyntaxError, 'Unexpected token )') if stack.empty?
         stack.pop
         unary = false
       elsif tok == ','
@@ -141,17 +143,25 @@ module Evaluator
         end
         unary = true
       else
-        result << case tok
-                  when STRING then tok[1..-2].gsub(/\\"/, '"').gsub(/\\'/, "'")
-                  when REAL   then tok.to_f
-                  when HEX    then tok.to_i(16)
-                  when OCT    then tok.to_i(8)
-                  when DEC    then tok.to_i(10)
-                  when SYMBOL
-                    tok.downcase!
-                    raise(NameError, "Symbol #{tok} is undefined") if !vars.include?(tok)
-                    vars[tok]
-                  end
+        val = case tok
+              when UNIT
+                if tok.respond_to? :to_unit
+                  tok[1..-2].to_unit
+                else
+                  raise(RuntimeError, 'Unit support not available')
+                end
+              when STRING then tok[1..-2].gsub(/\\"/, '"').gsub(/\\'/, "'")
+              when REAL   then tok.to_f
+              when HEX    then tok.to_i(16)
+              when OCT    then tok.to_i(8)
+              when DEC    then tok.to_i(10)
+              when SYMBOL
+                tok.downcase!
+                raise(NameError, "Symbol #{tok} is undefined") if !vars.include?(tok)
+                vars[tok]
+              end
+        stack << '*' if !unary
+        result << val
         unary = false
       end
     end
