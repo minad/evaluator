@@ -46,6 +46,7 @@ module Evaluator
     'acos'     => prefix   {|x| Math.acos(x) },
     'atan'     => prefix   {|x| Math.atan(x) },
     'asinh'    => prefix   {|x| Math.asinh(x) },
+    'acosh'    => prefix   {|x| Math.acosh(x) },
     'atanh'    => prefix   {|x| Math.atanh(x) },
     'sqrt'     => prefix   {|x| Math.sqrt(x) },
     'log'      => prefix   {|x| Math.log(x) },
@@ -91,6 +92,12 @@ module Evaluator
     'downcase' => 'tolower',
     'upcase'   => 'toupper',
     'slice'    => 'substr',
+    'arcsin'   => 'asin',
+    'arccos'   => 'acos',
+    'arctan'   => 'atan',
+    'arcsinh'  => 'asinh',
+    'arccosh'  => 'asinh',
+    'arctanh'  => 'atanh',
   }
   CONSTANTS = {
     'true'  => true,
@@ -131,6 +138,7 @@ module Evaluator
         tok = String === operator ? operator : tok.downcase
         operator = OPERATOR[tok]
         if operator[0]
+          stack << '*' if !unary
           # Prefix operator
           stack << tok
         elsif unary && operator[3]
