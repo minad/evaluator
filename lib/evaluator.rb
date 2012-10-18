@@ -1,4 +1,9 @@
-require 'cmath'
+if RUBY_VERSION > '1.8'
+  require 'cmath'
+else
+  require 'complex'
+end
+
 begin
   require 'unit'
 rescue LoadError
