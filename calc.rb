@@ -13,12 +13,6 @@ rescue Exception => ex
   quiet ? nil : ex.message
 end
 
-if defined? Unit
-  Unit::System::DEFAULT.load(:scientific)
-  Unit::System::DEFAULT.load(:imperial)
-  Unit::System::DEFAULT.load(:misc)
-end
-
 vars = {}
 File.read('calc.startup').split("\n").each { |line| process(line, vars, true) }
 

@@ -1,4 +1,4 @@
-require 'complex'
+require 'cmath'
 begin
   require 'unit'
 rescue LoadError
@@ -112,7 +112,7 @@ module Evaluator
   HEX    = /^0[xX][\dA-Fa-f]+$/
   OCT    = /^0[0-7]+$/
   DEC    = /^\d+$/
-  SYMBOL = /^[a-zA-Z_][\w_]*$/
+  SYMBOL = /^[a-zA-Z_]\w*$/
   UNIT   = /^\[[^\]]+\]$/
   VALUE_TOKENS = [UNIT, STRING, REAL, HEX, OCT, DEC, SYMBOL].map {|x| x.source[1..-2] }
   OPERATOR_TOKENS = OPERATOR.keys.flatten.sort { |a,b| b.length <=> a.length}.map { |x| Regexp.quote(x) }
@@ -153,8 +153,8 @@ module Evaluator
       else
         val = case tok
               when UNIT
-                if tok.respond_to? :to_unit
-                  tok[1..-2].to_unit
+                if Object.const_defined?(:Unit)
+                  ::Unit(tok[1..-2])
                 else
                   raise(RuntimeError, 'Unit support not available')
                 end

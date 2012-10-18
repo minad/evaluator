@@ -27,7 +27,7 @@ it as follows:
     6241509647120.42 MeV
 
 The calculator loads a few natural constants at startup (calc.startup). For unit support
-my minad-units library is used. Units are denoted in brackets e.g. [meter], [kV] etc
+my unit gem is used. Units are denoted in brackets e.g. [meter], [kV] etc
 
 Authors
 -------
