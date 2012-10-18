@@ -154,7 +154,7 @@ module Evaluator
         val = case tok
               when UNIT
                 if Object.const_defined?(:Unit)
-                  ::Unit(tok[1..-2])
+                  Unit(tok[1..-2])
                 else
                   raise(RuntimeError, 'Unit support not available')
                 end
