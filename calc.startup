@@ -1,7 +1,18 @@
-c: 2.99792458e8 [m/s]
-q_e: 1.602176487e-19 [C]
-m_e: 9.10938215e-31 [kg]
-m_p: 1.67262158e-27 [kg]
-m_n: 1.67492716e-27 [kg]
-n_l: 6.02214179e+23 [1/mole]
-k_b: 1.3806504e-23 [J/K]
+SpeedOfLight:          2.99792458e8 [m/s]
+ElementaryCharge:      1.602176487e-19 [C]
+ElectronMass:          9.10938215e-31 [kg]
+ProtonMass:            1.67262158e-27 [kg]
+NeutronMass:           1.67492716e-27 [kg]
+AvogadroConstant:      6.02214179e+23 [1/mole]
+BoltzmannConstant:     1.3806504e-23 [J/K]
+PlanckConstant:        6.62606896e-34 [J s]
+ReducedPlanckConstant: PlanckConstant / (2 * pi)
+GravitationConstant:   6.67428e-11 [m^3 / (kg * s^2)]
+GasConstant:           AvogadroConstant * BoltzmannConstant
+BohrRadius:            5.2917720859e−11 [m]
+BohrMagneton:          9.27400915e-24 [J/T]
+VacuumPermeability:    4 * pi * 1e-7 [N/A]
+VacuumPermittivity:    1 / (VacuumPermeability * SpeedOfLight^2)
+FineStructureConstant: ElementaryCharge^2 / (4 * pi * VacuumPermittivity * ReducedPlanckConstant * SpeedOfLight)
+RydbergConstant:       10973731.568527 [1/m]
+FluxQuantum:           PlanckConstant / (2 * ElementaryCharge)
