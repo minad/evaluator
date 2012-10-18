@@ -1,5 +1,0 @@
-lib/evaluator.rb
-test/test_evaluator.rb
-README.markdown
-Rakefile
-Manifest.txt

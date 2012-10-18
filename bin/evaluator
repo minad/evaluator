@@ -1,5 +1,8 @@
-#!/usr/bin/ruby -w
-require 'lib/evaluator'
+#!/usr/bin/env ruby
+
+$:.unshift File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib'))
+
+require 'evaluator'
 require 'readline'
 
 def process(line, vars, quiet = false)
@@ -14,7 +17,7 @@ rescue Exception => ex
 end
 
 vars = {}
-File.read('calc.startup').split("\n").each { |line| process(line, vars, true) }
+File.read(File.expand_path(File.join(File.dirname(__FILE__), '..', 'evaluator.constants'))).split("\n").each { |line| process(line, vars, true) }
 
 loop do
   line = Readline::readline('> ')
