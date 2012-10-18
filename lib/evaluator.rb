@@ -1,6 +1,6 @@
 require 'complex'
 begin
-  require 'units'
+  require 'unit'
 rescue LoadError
 end
 
