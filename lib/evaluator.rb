@@ -1,7 +1,7 @@
-if RUBY_VERSION > '1.8'
-  require 'cmath'
-else
+if RUBY_VERSION < '1.9'
   require 'complex'
+else
+  require 'cmath'
 end
 
 begin
