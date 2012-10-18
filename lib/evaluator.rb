@@ -13,7 +13,7 @@ module Evaluator
   def self.infix(priority, unary = nil, &block) [false, priority, lambda(&block), unary] end
   def self.prefix(&block) [true, 1e5, lambda(&block)] end
 
-  VERSION = '0.1.5'
+  VERSION = '0.1.6'
   OPERATOR = {
     'in'       => infix(0) do |a,b|
       raise(RuntimeError, 'Unit support not available') if !a.respond_to? :in
