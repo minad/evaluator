@@ -171,4 +171,9 @@ describe Evaluator do
     e("'abc\"a'").should.equal 'abc"a'
     e("'abc\\'a'").should.equal "abc'a"
   end
+
+  it 'should support units' do
+    e('1 [km] in [m]').should.equal Unit('1000 m')
+    e('3 [m] / 2 [s]').should.equal Unit('3 m / 2 s')
+  end
 end
