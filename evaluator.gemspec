@@ -18,4 +18,5 @@ Gem::Specification.new do |s|
   s.require_paths = %w(lib)
 
   s.add_development_dependency('bacon')
+  s.add_development_dependency('rake')
 end
