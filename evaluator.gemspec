@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.authors           = ['Daniel Mendler']
   s.email             = ['mail@daniel-mendler.de']
   s.summary           = 'Mathematical expression evaluator'
-  s.description       = 'Mathematical expression evaluator'
+  s.description       = 'Mathematical expression evaluator for infix notation'
   s.homepage          = 'http://github.com/minad/evaluator'
   s.rubyforge_project = s.name
 
